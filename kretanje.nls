@@ -1,0 +1,237 @@
+to provjera-slobodnog-mjesta
+  ask napasti [
+ ifelse [pcolor] of patch-left-and-ahead 90 1 = 47.9 and not member? ([plabel] of patch-left-and-ahead 90 1) moj-put
+  [set s-lijevo 1][set s-lijevo 0] 
+ ifelse [pcolor] of patch-ahead 1 = 47.9 and not member? ([plabel] of patch-ahead 1) moj-put
+  [set s-naprijed 1][set s-naprijed 0]
+ ifelse [pcolor] of patch-right-and-ahead 90 1 = 47.9 and not member? ([plabel] of patch-right-and-ahead 90 1) moj-put
+  [set s-desno 1][set s-desno 0]
+]
+end
+
+to korak-pretrage 
+ provjera-slobodnog-mjesta
+ ask napasti
+ [
+  if (s-desno = 0 and s-lijevo = 0 and s-naprijed = 0) or abs ycor = 9 [
+    ifelse (length(zastavica-x) > 0 and length(zastavica-y) > 0)[
+   set xcor (last zastavica-x)
+   set ycor (last zastavica-y)
+   set zastavica-x remove-item (length zastavica-x - 1) zastavica-x
+   set zastavica-y remove-item (length zastavica-y - 1) zastavica-y
+   ]
+    [set moj-put []]
+  ]
+ ]
+ 
+ ifelse s-lijevo = 1 and (s-naprijed != 0 or s-desno != 0)
+ [
+  set zastavica-x lput pxcor zastavica-x
+  set zastavica-y lput pycor zastavica-y
+  set zastavica-x lput pxcor zastavica-x
+  set zastavica-y lput pycor zastavica-y
+  lt 90 fd 1
+  set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+ [
+   ifelse s-lijevo = 1 and s-desno = 0 and s-naprijed = 0 
+  [ 
+    lt 90 fd 1
+   set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+  [
+    ifelse s-naprijed = 1 and s-desno = 0
+     [fd 1
+     set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+    [
+     ifelse s-naprijed = 1 and s-desno != 0
+    [
+    set zastavica-x lput pxcor zastavica-x
+    set zastavica-y lput pycor zastavica-y
+     fd 1
+     set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+    [
+      if s-desno = 1
+    [rt 90 fd 1
+     set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+    ]
+   ]
+  ]
+ ]
+ manhattan-udaljenost
+end
+
+to korak-pretrage-s
+ provjera-slobodnog-mjesta
+ let br i
+ 
+ ifelse abs pycor <= abs i
+ [ ask napasti
+ [
+  if s-desno = 0 and s-lijevo = 0 and s-naprijed = 0 [
+    ifelse (length(zastavica-x) > 0 and length(zastavica-y) > 0)[
+   set xcor (last zastavica-x)
+   set ycor (last zastavica-y)
+   set zastavica-x remove-item (length zastavica-x - 1) zastavica-x
+   set zastavica-y remove-item (length zastavica-y - 1) zastavica-y
+   ]
+    [set moj-put []]
+  ]
+ ]
+  
+  ifelse s-lijevo = 1 and (s-naprijed != 0 or s-desno != 0)
+ [
+  set raskrizje? true 
+  set zastavica-x lput pxcor zastavica-x
+  set zastavica-y lput pycor zastavica-y
+  set zastavica-x lput pxcor zastavica-x
+  set zastavica-y lput pycor zastavica-y
+  lt 90 fd 1
+  set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+ [
+   ifelse s-lijevo = 1 and s-desno = 0 and s-naprijed = 0 
+  [ 
+    lt 90 fd 1
+   set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+  [
+    ifelse s-naprijed = 0 and s-desno = 1
+     [rt 90 fd 1
+     set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+    [
+     ifelse s-naprijed != 0 and s-desno = 1
+    [
+    set raskrizje? true 
+    set zastavica-x lput pxcor zastavica-x
+    set zastavica-y lput pycor zastavica-y
+     fd 1
+     set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+    [
+      if s-naprijed = 1
+    [ fd 1
+     set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+    ]
+   ]
+  ]
+ ]
+]
+[ 
+  ifelse any? patches with [pycor = br - 1 and raskrizje? = true][
+  ask napast 4 [ move-to one-of patches with [(pycor = br - 1 or pycor = (br - 1)*(- 1) ) and pcolor = 47.9 and raskrizje? = true]]]
+  [move-to one-of patches with [pycor = br - 1 and pcolor = 47.9]]  set i i + 1 set br i]
+end
+
+
+
+to korak-pretrage-p
+  provjera-slobodnog-mjesta
+ ask napasti
+ [
+  if (s-desno = 0 and s-lijevo = 0 and s-naprijed = 0) or abs ycor = 9
+  [
+   ifelse (length(zastavica-x) > 0 and length(zastavica-y) > 0)
+   [
+     set xcor (last zastavica-x)
+     set ycor (last zastavica-y)
+     set zastavica-x remove-item (length zastavica-x - 1) zastavica-x
+     set zastavica-y remove-item (length zastavica-y - 1) zastavica-y
+   ]
+    [set moj-put []]
+  ]
+ ]
+ 
+ if s-lijevo = 1 and s-naprijed = 0 and s-desno = 0
+ [lt 90 fd 1
+   set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+ if s-lijevo = 0 and s-naprijed = 1 and s-desno = 0
+ [fd 1
+   set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+ if s-lijevo = 0 and s-naprijed = 0 and s-desno = 1
+ [rt 90 fd 1
+   set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+ 
+ 
+ if s-lijevo = 1 and s-naprijed = 1 and s-desno = 1
+ [
+  set zastavica-x lput pxcor zastavica-x
+  set zastavica-y lput pycor zastavica-y
+  set zastavica-x lput pxcor zastavica-x
+  set zastavica-y lput pycor zastavica-y
+  
+  ifelse (([plabel] of patch-left-and-ahead 90 1) < ([plabel] of patch-ahead  1)) and (([plabel] of patch-left-and-ahead 90 1) < ([plabel] of patch-right-and-ahead 90 1))
+   [ lt 90 fd 1 set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+   
+   [ 
+     ifelse ([plabel] of patch-ahead  1) < ([plabel] of patch-right-and-ahead 90 1)
+      [ fd 1 set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+      [rt 90 fd 1 set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+   ]
+ ]
+  
+ if s-lijevo = 1 and s-naprijed = 1 and s-desno = 0
+ [
+   set zastavica-x lput pxcor zastavica-x
+   set zastavica-y lput pycor zastavica-y
+   
+   ifelse ([plabel] of patch-left-and-ahead 90 1) < ([plabel] of patch-ahead  1)
+   [ lt 90 fd 1 set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+   [ fd 1 set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+ ]
+ 
+ if s-lijevo = 1 and s-naprijed = 0 and s-desno = 1
+ [
+   set zastavica-x lput pxcor zastavica-x
+   set zastavica-y lput pycor zastavica-y
+   
+   ifelse ([plabel] of patch-left-and-ahead 90 1) < ([plabel] of patch-right-and-ahead 90 1)
+   [lt 90 fd 1 set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+   [rt 90 fd 1 set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+ ]
+  
+ if s-lijevo = 0 and s-naprijed = 1 and s-desno = 1
+ [
+  set zastavica-x lput pxcor zastavica-x
+  set zastavica-y lput pycor zastavica-y
+ 
+  ifelse ([plabel] of patch-ahead 1) < ([plabel] of patch-right-and-ahead 90 1)
+   [ fd 1 set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+   [ rt 90 fd 1 set moj-put lput (pxcor * 100 + pycor) moj-put provjera-slobodnog-mjesta]
+ ]
+end
+
+to a-star
+  set lista []
+  ask napasti [set lista lput astar lista]
+
+  ask napasti with [astar = min lista]
+  [
+    manhattan-udaljenost
+    racunaj-dijkstra
+    racunaj-astar
+    korak-pretrage
+  ]
+end
+
+to racunaj-astar
+  set astar heuristika + procjena-puta
+end
+
+to racunaj-dijkstra
+  ask napasti [set heuristika abs([pxcor] of patch-here - xcor) + abs([pycor] of patch-here - ycor)]
+end
+
+to manhattan-udaljenost
+   ask mace [if zivot > 0 [set x xcor set y ycor]]
+   ask napasti [set procjena-puta abs(x - xcor) + abs(y - ycor)]
+end
+
+to dijkstra
+  set lista []
+  ask napasti [
+    set lista lput heuristika lista
+    ]
+
+  ask napasti with [heuristika = min lista]
+  [
+    manhattan-udaljenost
+    racunaj-dijkstra
+    korak-pretrage
+  ]
+end
